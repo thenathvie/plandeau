@@ -1,1 +1,152 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plan d'eau de VERRUYES - Animations & Locations</title>
+    <style>
+        body { font-family: 'Arial', sans-serif; background-color: #fdf5f5; color: #1a492b; margin: 0; padding: 20px; }
+        header { text-align: center; margin-bottom: 40px; }
+        h1, h2, h3 { color: #0d8341; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .section { margin-bottom: 40px; padding-bottom: 20px; border-bottom: 2px solid #eee; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .card { background: #f4fbf7; padding: 15px; border-radius: 8px; border-left: 4px solid #0d8341; }
+        .price { font-weight: bold; font-size: 1.2em; color: #d9534f; }
+        .rule { font-size: 0.85em; font-style: italic; color: #555; }
+        form { display: flex; flex-direction: column; gap: 15px; background: #eef8f1; padding: 20px; border-radius: 8px; }
+        input, select, button { padding: 10px; font-size: 1em; border-radius: 5px; border: 1px solid #ccc; }
+        button { background-color: #0d8341; color: white; cursor: pointer; border: none; font-weight: bold; }
+        button:hover { background-color: #0a6b35; }
+    </style>
+</head>
+<body>
 
+<div class="container">
+    <header>
+        <h1>🌊 Animations Plan d'eau de VERRUYES</h1>
+        <p><strong>Ouvert du lundi au dimanche | 10h - 17h30</strong></p>
+        <p>Votre équipe : Célian, Lilou, Justin, Lola</p>
+        <p>Contact : <a href="mailto:celian.gaychet@gmail.com">celian.gaychet@gmail.com</a> | Instagram : <strong>@ANIMVERRUYES</strong></p>
+    </header>
+
+    <div class="section">
+        <h2>🛶 Tarifs et Locations (20 minutes)</h2>
+        <div class="grid">
+            <div class="card">
+                <h3>Pédalo 2 places</h3>
+                <p class="price">4€</p>
+                <p class="rule">À partir de 12 ans en compagnie d'un adulte</p>
+            </div>
+            <div class="card">
+                <h3>Pédalo 5 places</h3>
+                <p class="price">6€</p>
+                <p class="rule">À partir de 12 ans en compagnie d'un adulte</p>
+            </div>
+            <div class="card">
+                <h3>Paddle</h3>
+                <p class="price">4€</p>
+                <p class="rule">Interdit aux enfants de moins de 12 ans</p>
+            </div>
+            <div class="card">
+                <h3>Kayak</h3>
+                <p class="price">4€</p>
+                <p class="rule">À partir de 12 ans en compagnie d'un adulte</p>
+            </div>
+            <div class="card">
+                <h3>Buggy (1 ou 2 places)</h3>
+                <p class="price">4€</p>
+            </div>
+            <div class="card">
+                <h3>Matériels de plage (ballons, raquettes...)</h3>
+                <p class="price">Gratuit</p>
+                <p class="rule">À récupérer contre une pièce d'identité</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>📅 Planning des Animations (Du 06/07 au 12/07 2026)</h2>
+        <ul>
+            <li><strong>Mercredi 08/07 - 15H :</strong> Tournoi de Mölkky</li>
+            <li><strong>Samedi 11/07 - 15H :</strong> Tournoi de Beach Volley</li>
+            <li><strong>Dimanche 12/07 - 15H :</strong> Concours de Land Art</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>📝 Réserver un équipement</h2>
+        <form id="reservationForm">
+            <input type="text" id="nom" placeholder="Votre Nom et Prénom" required>
+            <select id="equipement" required>
+                <option value="">-- Choisissez un équipement --</option>
+                <option value="pedalo_2">Pédalo 2 places</option>
+                <option value="pedalo_5">Pédalo 5 places</option>
+                <option value="paddle">Paddle</option>
+                <option value="kayak">Kayak</option>
+                <option value="buggy">Buggy</option>
+            </select>
+            <input type="date" id="dateResa" required>
+            <input type="time" id="heureResa" min="10:00" max="17:00" required>
+            <button type="submit">Confirmer la réservation</button>
+        </form>
+        <p id="messageConfirmation" style="color: green; font-weight: bold; display: none;">Réservation envoyée avec succès !</p>
+    </div>
+</div>
+
+<script type="module">
+  // 1. Importer les fonctions Firebase
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+  // 2. TA CONFIGURATION FIREBASE (À REMPLACER PAR TES CLÉS)
+  const firebaseConfig = {
+  apiKey: "AIzaSyCfwA4JPtmOHm2VEIv02WftFgR1hz6t1GY",
+  authDomain: "plandeau-47a57.firebaseapp.com",
+  projectId: "plandeau-47a57",
+  storageBucket: "plandeau-47a57.firebasestorage.app",
+  messagingSenderId: "434894486889",
+  appId: "1:434894486889:web:9c932440a68f1669ae51f8",
+  measurementId: "G-0S6YM52V1T"
+};
+
+  // 3. Initialiser Firebase et Firestore
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // 4. Gérer la soumission du formulaire
+  document.getElementById('reservationForm').addEventListener('submit', async (e) => {
+      e.preventDefault(); // Empêche le rechargement de la page
+
+      const nom = document.getElementById('nom').value;
+      const equipement = document.getElementById('equipement').value;
+      const dateResa = document.getElementById('dateResa').value;
+      const heureResa = document.getElementById('heureResa').value;
+
+      try {
+          // Ajouter un nouveau document dans la collection "reservations_materiel"
+          await addDoc(collection(db, "reservations_materiel"), {
+              nomClient: nom,
+              equipement: equipement,
+              date: dateResa,
+              heure: heureResa,
+              dateCreation: serverTimestamp()
+          });
+
+          // Afficher le message de succès et réinitialiser le formulaire
+          document.getElementById('messageConfirmation').style.display = 'block';
+          document.getElementById('reservationForm').reset();
+          
+          setTimeout(() => {
+              document.getElementById('messageConfirmation').style.display = 'none';
+          }, 4000);
+
+      } catch (error) {
+          console.error("Erreur lors de la réservation: ", error);
+          alert("Une erreur est survenue. Veuillez réessayer.");
+      }
+  });
+</script>
+
+</body>
+</html>
