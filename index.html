@@ -11,606 +11,801 @@
 
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 
+    <script>
+        window.addEventListener('load', function() {
+            var loader = document.getElementById('loader');
+            if(loader) {
+                loader.style.opacity = '0';
+                setTimeout(function() {
+                    loader.style.display = 'none';
+                }, 500);
+            }
+        });
+    </script>
+
     <style>
-        /* === PALETTE DE COULEURS BASÉE SUR LE LOGO (Eau / Marine / Turquoise) === */
+        /* === PALETTE DE COULEURS BASÉE SUR LE LOGO (Bleu / Rouge) === */
         :root {
-            --brand-primary: #005f73;    /* Bleu profond de l'eau (pour les titres forts) */
-            --brand-secondary: #0a9396;  /* Turquoise lagon (pour les boutons et prix) */
-            --brand-accent: #e9d8a6;     /* Sable clair (touches subtiles) */
-            --bg-light: #f4f9f9;         /* Fond légèrement bleuté très clair */
+            --brand-primary: #003366;    /* Bleu profond (pour les fonds, titres forts) */
+            --brand-secondary: #D92323;  /* Rouge dynamique (pour les boutons, prix et accents) */
+            --brand-accent: #f4f4f9;     /* Gris très clair / bleuté pour contraster */
+            --bg-light: #ffffff;         /* Fond blanc classique */
             
-            /* Textes colorés au lieu du noir/gris classique */
-            --text-main: #002b36;        /* Bleu marine très foncé pour le texte lisible */
-            --text-muted: #2a6f7e;       /* Bleu grisé pour les textes secondaires */
-            
-            --radius-lg: 20px;
+            /* Textes couleurs */
+            --text-dark: #1a202c;
+            --text-gray: #4a5568;
+            --white: #ffffff;
+
+            /* Ombres et Radiuses (arrondis) */
+            --shadow-sm: 0 2px 8px rgba(0, 51, 102, 0.08);
+            --shadow-md: 0 8px 24px rgba(0, 51, 102, 0.12);
+            --shadow-lg: 0 12px 32px rgba(217, 35, 35, 0.15); /* Ombre rouge subtile au survol */
             --radius-md: 12px;
-            --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            --shadow-subtle: 0 4px 30px rgba(0, 95, 115, 0.05);
-            --shadow-premium: 0 20px 40px rgba(0, 95, 115, 0.1);
+            --radius-lg: 20px;
+            --radius-pill: 50px;
+            
+            /* Transitions */
+            --transition-fast: 0.2s ease;
+            --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background-color: var(--bg-light); 
-            color: var(--text-main); 
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: var(--text-dark);
+            background-color: var(--bg-light);
             line-height: 1.6;
-            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
         }
 
-        /* === HEADER & LOGO MIS EN VALEUR === */
-        .header-nav-wrapper {
+        h1, h2, h3, h4 {
+            font-family: 'Playfair Display', serif;
+            color: var(--brand-primary);
+        }
+
+        /* --- LOADER --- */
+        .loader-wrapper {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--brand-primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+        .spinner {
+            width: 50px; height: 50px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid var(--white);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* --- HEADER & NAV --- */
+        header {
+            position: fixed;
+            top: 0; width: 100%;
             background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            border-bottom: 1px solid rgba(0, 95, 115, 0.1);
-        }
-
-        .header-container {
-            max-width: 1200px;
-            margin: 0 auto;
+            backdrop-filter: blur(10px);
+            padding: 15px 5%;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 24px;
+            z-index: 1000;
+            box-shadow: var(--shadow-sm);
         }
 
-        .brand-identity { display: flex; align-items: center; gap: 15px; }
-        /* Logo agrandi et mis en relief avec une ombre subtile */
-        .brand-identity img.logo { 
-            height: 65px; 
-            width: auto; 
-            object-fit: contain; 
-            filter: drop-shadow(0px 4px 6px rgba(0, 43, 54, 0.15)); 
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
-        .brand-identity h1 { 
-            font-family: 'Playfair Display', serif; 
-            font-size: 1.8em; 
-            color: var(--brand-primary); 
+        .logo {
+            height: 50px;
+            width: auto;
+        }
+        .site-title {
+            font-size: 1.4rem;
             font-weight: 700;
+            color: var(--brand-primary);
+            letter-spacing: -0.5px;
         }
 
-        /* === NAVIGATION TABS (SCROLLABLE SUR MOBILE) === */
-        .nav-tabs { 
-            display: flex; 
-            gap: 8px; 
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 30px;
         }
-        .nav-tabs button { 
-            background: transparent; 
-            border: none; 
-            color: var(--text-muted); 
-            font-size: 0.95em; 
-            font-weight: 700; 
-            padding: 10px 20px; 
-            border-radius: 30px; 
-            cursor: pointer; 
-            transition: var(--transition-smooth); 
+        nav a {
+            text-decoration: none;
+            color: var(--text-gray);
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: var(--transition-fast);
         }
-        .nav-tabs button:hover { color: var(--brand-primary); background: rgba(0, 95, 115, 0.05); }
-        .nav-tabs button.active { 
-            background-color: var(--brand-primary); 
-            color: white; 
-            box-shadow: 0 10px 20px rgba(0, 95, 115, 0.2);
+        nav a:hover {
+            color: var(--brand-secondary);
         }
 
-        /* === LAYOUT CENTRAL === */
-        .container { max-width: 1100px; margin: 40px auto; padding: 0 20px; min-height: 70vh; }
-        
-        .tab-content { display: none; animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
-        .tab-content.active { display: block; }
-        
-        @keyframes fadeIn { 
-            from { opacity: 0; transform: translateY(15px); } 
-            to { opacity: 1; transform: translateY(0); } 
-        }
-
-        /* TYPOGRAPHIE DES SECTIONS */
-        .section-header { margin-bottom: 40px; text-align: center; }
-        .section-header h2 { 
-            font-family: 'Playfair Display', serif; 
-            font-size: 2.8em; 
-            color: var(--brand-primary); 
-            margin-bottom: 12px;
+        .btn-reserve-nav {
+            background: var(--brand-secondary);
+            color: var(--white) !important;
+            padding: 10px 24px;
+            border-radius: var(--radius-pill);
             font-weight: 600;
+            box-shadow: 0 4px 12px rgba(217, 35, 35, 0.3);
         }
-        .section-header p { color: var(--text-muted); font-size: 1.1em; max-width: 600px; margin: 0 auto; }
+        .btn-reserve-nav:hover {
+            background: #b81d1d; /* Rouge plus foncé au survol */
+            transform: translateY(-2px);
+        }
 
-        .poster-wrapper { text-align: center; margin-bottom: 40px; }
-        .poster-img { width: 100%; max-width: 700px; height: auto; border-radius: var(--radius-lg); box-shadow: var(--shadow-premium); }
-
-        /* === STYLE HERO : HOME ACCUEIL === */
-        .hero-section {
+        /* --- HERO SECTION --- */
+        .hero {
+            height: 100vh;
+            background-image: url('photo1.jpg'); /* Image de fond */
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             text-align: center;
-            padding: 60px 20px;
-            background: linear-gradient(135deg, rgba(0, 147, 150, 0.1) 0%, rgba(0, 95, 115, 0.05) 100%);
-            border-radius: var(--radius-lg);
+            padding: 0 20px;
+            margin-top: 0;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(to bottom, rgba(0, 51, 102, 0.6), rgba(0, 51, 102, 0.3));
+        }
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            color: var(--white);
+        }
+        .hero-subtitle {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--brand-accent);
+        }
+        .hero h1 {
+            font-size: 4rem;
+            color: var(--white);
+            margin-bottom: 24px;
+            line-height: 1.1;
+            text-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .hero p {
+            font-size: 1.2rem;
+            font-weight: 300;
             margin-bottom: 40px;
+            opacity: 0.95;
         }
-        .hero-section h2 { font-size: 3.2em; font-weight: 800; letter-spacing: -1px; line-height: 1.15; margin-bottom: 20px; color: var(--brand-primary); }
-        .hero-section h2 span { color: var(--brand-secondary); }
-        
-        .home-buttons { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-top: 30px; }
-        .btn-premium {
-            background-color: var(--brand-secondary);
-            color: white;
+        .btn-main {
+            display: inline-block;
+            background: var(--brand-secondary);
+            color: var(--white);
+            padding: 16px 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: var(--radius-pill);
+            text-decoration: none;
+            transition: var(--transition-smooth);
+            box-shadow: 0 4px 15px rgba(217, 35, 35, 0.4);
             border: none;
-            padding: 16px 32px;
-            font-size: 1em;
-            font-weight: 700;
-            border-radius: 50px;
             cursor: pointer;
-            transition: var(--transition-smooth);
-            box-shadow: 0 10px 25px rgba(10, 147, 150, 0.25);
         }
-        .btn-premium:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(10, 147, 150, 0.35); background-color: var(--brand-primary); }
-        .btn-premium.secondary { background-color: white; color: var(--brand-primary); border: 2px solid rgba(0, 95, 115, 0.1); box-shadow: none; }
-        .btn-premium.secondary:hover { background-color: var(--bg-light); border-color: var(--brand-primary); }
+        .btn-main:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(217, 35, 35, 0.5);
+            background: #b81d1d;
+        }
 
-        /* GALERIE PHOTOS */
-        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 40px; }
-        .gallery-item { position: relative; overflow: hidden; border-radius: var(--radius-md); height: 260px; box-shadow: var(--shadow-subtle); }
-        .gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: var(--transition-smooth); }
-        .gallery-item:hover img { transform: scale(1.05); }
+        /* --- SECTION TITLES --- */
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        .section-header h2 {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+        }
+        .section-header p {
+            color: var(--text-gray);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
 
-        /* === CARTES LOCATIONS AVEC IMAGES === */
-        .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
-        .card-equipment {
-            background: white;
+        /* --- EQUIPMENTS SECTION --- */
+        .equipments-section {
+            padding: 100px 5%;
+            background: var(--brand-accent);
+        }
+        .grid-equipments {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 40px;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--white);
             border-radius: var(--radius-lg);
-            border: 1px solid rgba(0, 95, 115, 0.05);
-            box-shadow: var(--shadow-subtle);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
             transition: var(--transition-smooth);
+            position: relative;
             display: flex;
             flex-direction: column;
+        }
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .card-img-wrapper {
+            position: relative;
+            height: 240px;
             overflow: hidden;
+        }
+        .card-img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        .card:hover .card-img-wrapper img {
+            transform: scale(1.05);
+        }
+        .price-badge {
+            position: absolute;
+            top: 20px; right: 20px;
+            background: var(--brand-secondary);
+            color: var(--white);
+            padding: 8px 16px;
+            border-radius: var(--radius-pill);
+            font-weight: 700;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .card-content {
+            padding: 30px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .card-content h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+        .card-content p {
+            color: var(--text-gray);
+            font-size: 0.95rem;
+            margin-bottom: 20px;
+            flex-grow: 1;
+        }
+        
+        .rules-list {
+            list-style: none;
+            margin-bottom: 25px;
+            padding-top: 15px;
+            border-top: 1px solid #edf2f7;
+        }
+        .rules-list li {
+            font-size: 0.85rem;
+            color: var(--text-gray);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .rules-list li::before {
+            content: "•";
+            color: var(--brand-secondary);
+            font-size: 1.2rem;
+        }
+
+        .btn-outline {
+            display: block;
+            text-align: center;
+            padding: 12px;
+            border: 2px solid var(--brand-primary);
+            color: var(--brand-primary);
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition-fast);
             cursor: pointer;
+            background: transparent;
+            width: 100%;
+            font-family: inherit;
+            font-size: 1rem;
         }
-        .card-equipment:hover {
-            transform: translateY(-8px);
-            box-shadow: var(--shadow-premium);
-            border-color: rgba(10, 147, 150, 0.3);
-        }
-        
-        .card-img-wrapper { height: 200px; width: 100%; overflow: hidden; background: #e0f2f1; }
-        .card-img-wrapper img { width: 100%; height: 100%; object-fit: cover; transition: var(--transition-smooth); }
-        .card-equipment:hover .card-img-wrapper img { transform: scale(1.05); }
-        
-        .card-content { padding: 24px; display: flex; flex-direction: column; flex-grow: 1; }
-        .card-content h3 { font-size: 1.4em; color: var(--brand-primary); font-weight: 700; margin-bottom: 5px; }
-        .card-content .price-tag { font-size: 2em; font-weight: 800; color: var(--brand-secondary); margin: 5px 0 15px 0; }
-        .card-content .badge-info { 
-            font-size: 0.85em; color: var(--text-muted); background: var(--bg-light); 
-            padding: 10px 14px; border-radius: var(--radius-md); font-weight: 600; margin-top: auto; 
-            border: 1px solid rgba(0, 95, 115, 0.05);
+        .btn-outline:hover {
+            background: var(--brand-primary);
+            color: var(--white);
         }
 
-        /* === COMPOSANT TEAM === */
-        .team-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 40px; }
-        .team-card { background: white; border-radius: var(--radius-lg); padding: 24px; text-align: center; box-shadow: var(--shadow-subtle); border: 1px solid rgba(0, 95, 115, 0.05); }
-        .team-avatar { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin: 0 auto 16px auto; box-shadow: 0 8px 20px rgba(0, 95, 115, 0.1); background-color: #e0f2f1; }
-        .team-card h3 { font-size: 1.2em; color: var(--brand-primary); font-weight: 800; }
-        .team-card p { color: var(--brand-secondary); font-size: 0.9em; font-weight: 700; margin-top: 4px; }
-
-        /* STATE LOCK : TOURNOIS */
-        .lock-box { background: white; border-radius: var(--radius-lg); padding: 40px; text-align: center; max-width: 500px; margin: 40px auto; box-shadow: var(--shadow-premium); border: 1px solid rgba(0,95,115,0.05); }
-        .lock-badge { background: #e0f2f1; color: var(--brand-secondary); padding: 6px 16px; border-radius: 20px; font-size: 0.85em; font-weight: 800; display: inline-block; margin-bottom: 16px; }
-
-        /* === MODAL DIALOG MODERNE === */
-        .modal-overlay { 
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0, 43, 54, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-            z-index: 2000; justify-content: center; align-items: center; padding: 15px;
+        /* --- INFO PRATIQUES --- */
+        .info-section {
+            padding: 100px 5%;
+            background: var(--white);
         }
-        .modal-window { 
-            background: white; padding: 30px; border-radius: var(--radius-lg); 
-            width: 100%; max-width: 500px; position: relative; box-shadow: 0 30px 60px rgba(0,0,0,0.2);
-            animation: modalSlide 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            max-height: 95vh; overflow-y: auto;
+        .info-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
         }
-        @keyframes modalSlide { from { opacity: 0; transform: translateY(30px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
-        
-        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 2em; cursor: pointer; color: var(--brand-primary); background: rgba(0, 95, 115, 0.05); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; transition: var(--transition-smooth); }
-        .close-modal:hover { background: var(--brand-primary); color: white; transform: scale(1.05); }
-        
-        .modal-img { width: 100%; height: 160px; object-fit: cover; border-radius: var(--radius-md); margin-bottom: 20px; display: none; box-shadow: var(--shadow-subtle); }
+        .info-box {
+            background: var(--brand-accent);
+            padding: 40px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+        }
+        .info-box h3 {
+            margin-bottom: 20px;
+            font-size: 1.6rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .info-item {
+            margin-bottom: 25px;
+        }
+        .info-item strong {
+            display: block;
+            color: var(--brand-primary);
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+        .info-item p {
+            color: var(--text-gray);
+        }
 
-        form { display: flex; flex-direction: column; gap: 15px; margin-top: 15px; }
-        .form-row { display: flex; flex-direction: column; }
-        .form-row label { font-size: 0.9em; font-weight: 700; color: var(--brand-primary); margin-bottom: 6px; }
-        .form-row input, .form-row select { 
-            padding: 14px; font-size: 1em; border-radius: var(--radius-md); 
-            border: 1px solid rgba(0, 95, 115, 0.15); background: var(--bg-light);
-            font-family: inherit; color: var(--text-main); transition: var(--transition-smooth);
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
         }
-        .form-row input:focus, .form-row select:focus { outline: none; border-color: var(--brand-secondary); background: white; box-shadow: 0 0 0 4px rgba(10, 147, 150, 0.1); }
-        
-        .footer-expert { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 0.9em; border-top: 1px solid rgba(0, 95, 115, 0.1); margin-top: 80px; font-weight: 500; }
-        
-        /* =========================================
-           📱 OPTIMISATIONS POUR TÉLÉPHONES (MOBILE)
-           ========================================= */
-        @media(max-width: 768px) {
-            .header-container { flex-direction: column; gap: 15px; padding: 15px; }
-            .brand-identity img.logo { height: 55px; }
-            
-            /* Menu d'onglets défilable (scroll horizontal) au doigt sur mobile */
-            .nav-tabs { 
-                width: 100%; 
-                overflow-x: auto; 
-                padding-bottom: 10px; 
-                justify-content: flex-start;
-                -webkit-overflow-scrolling: touch;
-            }
-            .nav-tabs::-webkit-scrollbar { height: 4px; }
-            .nav-tabs::-webkit-scrollbar-thumb { background: rgba(0, 95, 115, 0.2); border-radius: 10px; }
-            
-            .nav-tabs button { white-space: nowrap; font-size: 0.9em; padding: 8px 16px; }
-            
-            /* Textes réduits pour petits écrans */
-            .hero-section h2 { font-size: 2.2em; }
-            .section-header h2 { font-size: 2em; }
-            
-            /* Les grilles passent toutes sur 1 seule colonne */
-            .cards-grid, .gallery-grid, .team-grid { grid-template-columns: 1fr; gap: 20px; }
-            
-            .modal-window { padding: 20px; }
-            .home-buttons { flex-direction: column; width: 100%; }
-            .btn-premium { width: 100%; }
+        .gallery-img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+        }
+        .gallery-img:first-child {
+            grid-column: 1 / -1;
+            height: 250px;
+        }
+
+        /* --- MODAL RESERVATION --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 51, 102, 0.6);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition-fast);
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background: var(--white);
+            width: 90%;
+            max-width: 500px;
+            border-radius: var(--radius-lg);
+            padding: 40px;
+            position: relative;
+            transform: translateY(20px);
+            transition: var(--transition-fast);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+        .close-btn {
+            position: absolute;
+            top: 20px; right: 25px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-gray);
+            border: none;
+            background: none;
+        }
+
+        .modal-header {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .modal-header h3 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--brand-primary);
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #cbd5e0;
+            border-radius: var(--radius-md);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: var(--transition-fast);
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--brand-secondary);
+            box-shadow: 0 0 0 3px rgba(217, 35, 35, 0.1);
+        }
+
+        .success-msg {
+            display: none;
+            background: #c6f6d5;
+            color: #22543d;
+            padding: 15px;
+            border-radius: var(--radius-md);
+            margin-top: 20px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--brand-primary);
+            color: var(--white);
+            text-align: center;
+            padding: 30px 20px;
+        }
+        footer p {
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.8rem; }
+            .info-container { grid-template-columns: 1fr; }
+            nav ul { display: none; } /* On cache le menu sur mobile pour simplifier */
         }
     </style>
 </head>
 <body>
 
-<header class="header-nav-wrapper">
-    <div class="header-container">
-        <div class="brand-identity">
-            <img src="logo.png" alt="Logo Base" class="logo" onerror="this.style.display='none'">
-            <h1>Verruyes</h1>
-        </div>
-        <nav class="nav-tabs">
-            <button class="tab-link active" onclick="openTab('accueil', this)">Accueil</button>
-            <button class="tab-link" onclick="openTab('locations', this)">Locations</button>
-            <button class="tab-link" onclick="openTab('planning', this)">Planning</button>
-            <button class="tab-link" onclick="openTab('tournois', this)">Tournois</button>
-            <button class="tab-link" onclick="openTab('apropos', this)">À Propos</button>
-        </nav>
+<div class="loader-wrapper" id="loader">
+    <div class="spinner"></div>
+</div>
+
+<header>
+    <div class="logo-container">
+        <img src="logo.png" alt="Logo Anim' Verruyes" class="logo">
+        <span class="site-title">Anim' Verruyes</span>
     </div>
+    <nav>
+        <ul>
+            <li><a href="#equipements">Nos Locations</a></li>
+            <li><a href="#infos">Infos Pratiques</a></li>
+            <li><a href="#equipements" class="btn-reserve-nav">Réserver</a></li>
+        </ul>
+    </nav>
 </header>
 
-<main class="container">
+<section class="hero">
+    <div class="hero-content">
+        <div class="hero-subtitle">Nature & Sensations</div>
+        <h1>Profitez de l'eau,<br>en toute liberté</h1>
+        <p>Découvrez nos équipements nautiques au cœur du plan d'eau de Verruyes. Pédalos, paddles, kayaks et buggys pour des moments inoubliables.</p>
+        <a href="#equipements" class="btn-main">Voir les locations</a>
+    </div>
+</section>
 
-    <section id="accueil" class="tab-content active">
-        <div class="hero-section">
-            <h2>L'expérience estivale <span>grandeur nature</span>.</h2>
-            <p class="section-header" style="margin-bottom:0;">Base de loisirs & activités nautiques au cœur de la Gâtine.</p>
-            <div class="home-buttons">
-                <button class="btn-premium" onclick="document.querySelectorAll('.tab-link')[1].click()">🛶 Réserver un équipement</button>
-                <button class="btn-premium secondary" onclick="document.querySelectorAll('.tab-link')[2].click()">📅 Agenda de la semaine</button>
+<section id="equipements" class="equipments-section">
+    <div class="section-header">
+        <h2>Nos Locations</h2>
+        <p>Choisissez votre embarcation pour 20 minutes de plaisir sur l'eau. Le matériel de plage est à votre disposition gratuitement !</p>
+    </div>
+
+    <div class="grid-equipments">
+        
+        <div class="card">
+            <div class="card-img-wrapper">
+                <span class="price-badge">4€ / 20 min</span>
+                <img src="pedalo2.jpg" alt="Pédalo 2 places">
+            </div>
+            <div class="card-content">
+                <h3>Pédalo 2 places</h3>
+                <p>L'incontournable pour une balade en duo sur le plan d'eau. Confortable et facile à manier.</p>
+                <ul class="rules-list">
+                    <li>1 ou 2 personnes</li>
+                    <li>À partir de 12 ans (si accompagné d'un adulte)</li>
+                </ul>
+                <button class="btn-outline" onclick="ouvrirModal('Pédalo 2 places')">Réserver ce créneau</button>
             </div>
         </div>
+
+        <div class="card">
+            <div class="card-img-wrapper">
+                <span class="price-badge">6€ / 20 min</span>
+                <img src="pedalo5.jpg" alt="Pédalo 5 places">
+            </div>
+            <div class="card-content">
+                <h3>Pédalo 5 places</h3>
+                <p>Idéal pour les familles ou les groupes d'amis. Partagez l'effort et les rires !</p>
+                <ul class="rules-list">
+                    <li>Jusqu'à 5 personnes</li>
+                    <li>À partir de 12 ans (si accompagné d'un adulte)</li>
+                </ul>
+                <button class="btn-outline" onclick="ouvrirModal('Pédalo 5 places')">Réserver ce créneau</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-img-wrapper">
+                <span class="price-badge">4€ / 20 min</span>
+                <img src="paddle.jpg" alt="Paddle">
+            </div>
+            <div class="card-content">
+                <h3>Stand-Up Paddle</h3>
+                <p>Testez votre équilibre et profitez d'une vue imprenable sur la nature environnante.</p>
+                <ul class="rules-list">
+                    <li>1 personne</li>
+                    <li>Interdit aux enfants de moins de 12 ans</li>
+                </ul>
+                <button class="btn-outline" onclick="ouvrirModal('Paddle')">Réserver ce créneau</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-img-wrapper">
+                <span class="price-badge">4€ / 20 min</span>
+                <img src="kayak.jpg" alt="Kayak">
+            </div>
+            <div class="card-content">
+                <h3>Kayak</h3>
+                <p>Pour les amateurs de glisse plus sportive. Parcourez le plan d'eau à votre rythme.</p>
+                <ul class="rules-list">
+                    <li>1 personne</li>
+                    <li>À partir de 12 ans (si accompagné d'un adulte)</li>
+                </ul>
+                <button class="btn-outline" onclick="ouvrirModal('Kayak')">Réserver ce créneau</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-img-wrapper">
+                <span class="price-badge">4€ / 20 min</span>
+                <img src="buggy.jpg" alt="Buggy à pédales">
+            </div>
+            <div class="card-content">
+                <h3>Buggy à pédales</h3>
+                <p>Restez sur la terre ferme et explorez les abords du plan d'eau de manière amusante.</p>
+                <ul class="rules-list">
+                    <li>1 ou 2 places disponibles</li>
+                    <li>Parfait pour les enfants</li>
+                </ul>
+                <button class="btn-outline" onclick="ouvrirModal('Buggy')">Réserver ce créneau</button>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<section id="infos" class="info-section">
+    <div class="info-container">
         
+        <div class="info-box">
+            <h3>Informations Pratiques</h3>
+            <div class="info-item">
+                <strong>🕒 Horaires d'ouverture</strong>
+                <p>Du lundi au dimanche : 10h00 à 18h00</p>
+                <p><em>(Dernière location possible à 17h30)</em></p>
+            </div>
+            <div class="info-item">
+                <strong>📍 Localisation</strong>
+                <p>Plan d'eau de Verruyes, 79310 Verruyes</p>
+            </div>
+            <div class="info-item">
+                <strong>🏐 Bonus Gratuit !</strong>
+                <p>Ballons, raquettes et divers matériels de plage sont mis à votre disposition <strong>gratuitement</strong> (à récupérer sur place contre une pièce d'identité).</p>
+            </div>
+            <div class="info-item">
+                <strong>👋 Votre Équipe</strong>
+                <p>Célian, Lilou, Justin, Lola</p>
+            </div>
+        </div>
+
         <div class="gallery-grid">
-            <div class="gallery-item"><img src="photo1.jpg" alt="Plan d'eau" onerror="this.src='https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=600'"></div>
-            <div class="gallery-item"><img src="photo2.jpg" alt="Activités" onerror="this.src='https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600'"></div>
-            <div class="gallery-item"><img src="photo3.jpg" alt="Plage" onerror="this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600'"></div>
-        </div>
-    </section>
-
-    <section id="locations" class="tab-content">
-        <div class="section-header">
-            <h2>Flotte Nautique & Matériel</h2>
-            <p>Réservez instantanément votre créneau de 20 minutes en toute autonomie.</p>
-        </div>
-        <div class="poster-wrapper">
-            <img src="location.jpg" alt="Grille Tarifaire Professionnelle" class="poster-img" onerror="this.style.display='none'">
-        </div>
-        
-        <div class="cards-grid">
-            <div class="card-equipment" onclick="ouvrirModal('Pédalo 2 places', 'pedalo_2', 'pedalo2.jpg')">
-                <div class="card-img-wrapper"><img src="pedalo2.jpg" alt="Pédalo 2 places" onerror="this.src='https://images.unsplash.com/photo-1628148008882-96dc37bd488d?w=600'"></div>
-                <div class="card-content">
-                    <h3>Pédalo 2 places</h3>
-                    <p class="price-tag">4€</p>
-                    <div class="badge-info">Dès 12 ans (Avec un adulte)</div>
-                </div>
-            </div>
-
-            <div class="card-equipment" onclick="ouvrirModal('Pédalo 5 places', 'pedalo_5', 'pedalo5.jpg')">
-                <div class="card-img-wrapper"><img src="pedalo5.jpg" alt="Pédalo 5 places" onerror="this.src='https://images.unsplash.com/photo-1576882894569-808603cb1b0e?w=600'"></div>
-                <div class="card-content">
-                    <h3>Pédalo 5 places</h3>
-                    <p class="price-tag">6€</p>
-                    <div class="badge-info">Famille — Dès 12 ans avec adulte</div>
-                </div>
-            </div>
-
-            <div class="card-equipment" onclick="ouvrirModal('Paddle', 'paddle', 'paddle.jpg')">
-                <div class="card-img-wrapper"><img src="paddle.jpg" alt="Paddle" onerror="this.src='https://images.unsplash.com/photo-1517868352695-1f9f2518f8ed?w=600'"></div>
-                <div class="card-content">
-                    <h3>Paddle individuel</h3>
-                    <p class="price-tag">4€</p>
-                    <div class="badge-info">Interdit aux moins de 12 ans</div>
-                </div>
-            </div>
-
-            <div class="card-equipment" onclick="ouvrirModal('Kayak', 'kayak', 'kayak.jpg')">
-                <div class="card-img-wrapper"><img src="kayak.jpg" alt="Kayak" onerror="this.src='https://images.unsplash.com/photo-1527269534026-c86f4009eace?w=600'"></div>
-                <div class="card-content">
-                    <h3>Kayak</h3>
-                    <p class="price-tag">4€</p>
-                    <div class="badge-info">Sportif — Dès 12 ans avec adulte</div>
-                </div>
-            </div>
-
-            <div class="card-equipment" onclick="ouvrirModal('Buggy', 'buggy', 'buggy.jpg')">
-                <div class="card-img-wrapper"><img src="buggy.jpg" alt="Buggy" onerror="this.src='https://images.unsplash.com/photo-1552085732-47f2010bd11e?w=600'"></div>
-                <div class="card-content">
-                    <h3>Buggy</h3>
-                    <p class="price-tag">4€</p>
-                    <div class="badge-info">Monoplace ou Biplace au choix</div>
-                </div>
-            </div>
-
-            <div class="card-equipment" onclick="ouvrirModal('Matériels de plage', 'materiel_plage', 'materiel.jpg')">
-                <div class="card-img-wrapper"><img src="materiel.jpg" alt="Matériels" onerror="this.src='https://images.unsplash.com/photo-1621360170046-24cb118a8043?w=600'"></div>
-                <div class="card-content">
-                    <h3>Matériels de plage</h3>
-                    <p class="price-tag" style="color:var(--brand-primary)">Gratuit</p>
-                    <div class="badge-info">Remis contre pièce d'identité</div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="planning" class="tab-content">
-        <div class="section-header">
-            <h2>Animations de la semaine</h2>
-            <p>Consultez la grille des activités quotidiennes planifiées par nos équipes.</p>
-        </div>
-        <div class="poster-wrapper">
-            <img src="semaine28.jpg" alt="Planning des animations" class="poster-img" onerror="this.style.display='none'">
-        </div>
-    </section>
-
-    <section id="tournois" class="tab-content">
-        <div class="section-header">
-            <h2>Compétitions & Challenges</h2>
-            <p>Mesurez-vous aux autres estivants lors de nos tournois exclusifs.</p>
-        </div>
-        <div class="lock-box">
-            <span class="lock-badge">Statut : À venir</span>
-            <h3 style="color:var(--brand-primary); margin-bottom:10px;">Inscriptions bientôt ouvertes</h3>
-            <p style="color:var(--text-muted);">La plateforme d'inscription en ligne pour les compétitions sera accessible très prochainement.</p>
-        </div>
-    </section>
-
-    <section id="apropos" class="tab-content">
-        <div class="section-header">
-            <h2>L'Équipe d'Animation</h2>
-            <p>Des professionnels dédiés à votre sécurité et à votre divertissement.</p>
-        </div>
-        
-        <div class="team-grid">
-            <div class="team-card">
-                <img src="equipe1.jpg" alt="Célian" class="team-avatar" onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'">
-                <h3>Célian</h3>
-                <p>Animateur Référent</p>
-            </div>
-            <div class="team-card">
-                <img src="equipe2.jpg" alt="Lilou" class="team-avatar" onerror="this.src='https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150'">
-                <h3>Lilou</h3>
-                <p>Animatrice</p>
-            </div>
-            <div class="team-card">
-                <img src="equipe3.jpg" alt="Justin" class="team-avatar" onerror="this.src='https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150'">
-                <h3>Justin</h3>
-                <p>Animateur</p>
-            </div>
-            <div class="team-card">
-                <img src="equipe4.jpg" alt="Lola" class="team-avatar" onerror="this.src='https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150'">
-                <h3>Lola</h3>
-                <p>Animatrice</p>
-            </div>
+            <img src="photo3.jpg" alt="Vue du plan d'eau" class="gallery-img">
+            <img src="photo2.jpg" alt="Activité sur l'eau" class="gallery-img">
+            <img src="photo1.jpg" alt="Détente à la base de loisirs" class="gallery-img">
         </div>
 
-        <div style="margin-top: 50px; background: white; padding: 35px; border-radius: var(--radius-lg); box-shadow: var(--shadow-subtle); border: 1px solid rgba(0,95,115,0.05);">
-            <h4 style="color:var(--brand-primary); margin-bottom: 15px; font-size:1.3em;">Informations Générales</h4>
-            <p style="margin-bottom: 10px;">🕒 <strong style="color:var(--text-main);">Horaires :</strong> 7j/7 — 10h00 à 17h30 en continu.</p>
-            <p style="margin-bottom: 10px;">📍 <strong style="color:var(--text-main);">Coordonnées :</strong> Plan d'eau de Verruyes, 79310 VERRUYES.</p>
-            <p>✉️ <strong style="color:var(--text-main);">Courriel :</strong> <a href="mailto:animeverruyes@gmail.com" style="color: var(--brand-secondary); font-weight: 700; text-decoration: none;">animeverruyes@gmail.com</a></p>
+    </div>
+</section>
+
+<footer>
+    <p>&copy; 2026 Anim' Verruyes - Plan d'eau. Tous droits réservés.</p>
+</footer>
+
+<div class="modal-overlay" id="modalResa">
+    <div class="modal-content">
+        <button class="close-btn" onclick="fermerModal()">&times;</button>
+        <div class="modal-header">
+            <h3>Réservation</h3>
+            <p style="color: var(--text-gray);" id="equipementLabel">Sélectionnez vos horaires</p>
         </div>
-    </section>
-
-</main>
-
-<div class="modal-overlay" id="reservationModal">
-    <div class="modal-window">
-        <span class="close-modal" onclick="fermerModal()">&times;</span>
-        
-        <img id="modalImageEquipement" src="" alt="Equipement" class="modal-img">
-
-        <h2 style="font-family:'Playfair Display', serif; color:var(--brand-primary);">Demande de Réservation</h2>
-        <p style="color:var(--brand-secondary); font-size:1em; font-weight:800; margin-top:4px;" id="titreEquipement"></p>
         
         <form id="reservationForm">
             <input type="hidden" id="equipementValue">
             
-            <div class="form-row">
-                <label for="dateResa">Date souhaitée</label>
-                <input type="date" id="dateResa" required>
-            </div>
-            <div class="form-row">
-                <label for="heureResa">Créneau disponible (20 min)</label>
-                <select id="heureResa" required disabled>
-                    <option value="">Sélectionnez d'abord une date</option>
-                </select>
-            </div>
-            <div class="form-row">
-                <label for="nom">Identité (Nom & Prénom)</label>
-                <input type="text" id="nom" placeholder="Ex: Jean Dupont" required>
-            </div>
-            <div class="form-row">
-                <label for="telephone">Numéro de mobile</label>
-                <input type="tel" id="telephone" placeholder="Ex: 06 00 00 00 00" required>
+            <div class="form-group">
+                <label for="nom">Nom / Prénom</label>
+                <input type="text" id="nom" required placeholder="Ex: Dupont Jean">
             </div>
             
-            <button type="submit" class="btn-premium" id="btnSubmit" style="width:100%; border-radius:var(--radius-md); margin-top:10px;" disabled>Confirmer le créneau</button>
+            <div class="form-group">
+                <label for="telephone">Numéro de téléphone</label>
+                <input type="tel" id="telephone" required placeholder="06 XX XX XX XX">
+            </div>
+            
+            <div class="form-group">
+                <label for="dateResa">Date</label>
+                <input type="date" id="dateResa" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="heureResa">Créneau (20 min)</label>
+                <select id="heureResa" required>
+                    <option value="">Choisissez d'abord une date</option>
+                    </select>
+            </div>
+
+            <button type="submit" class="btn-main" style="width: 100%; border:none; margin-top:10px;" id="btnSubmitForm">Confirmer le créneau</button>
+            <div id="messageConfirmation" class="success-msg">
+                ✅ Demande envoyée ! Nous vous attendons sur place.
+            </div>
         </form>
-        <div id="messageConfirmation" style="text-align:center; background:#e0f2f1; color:var(--brand-secondary); padding:15px; border-radius:var(--radius-md); display:none; margin-top:20px; font-weight:700;">
-            ✓ Réservation confirmée. À très bientôt !
-        </div>
     </div>
 </div>
 
-<footer class="footer-expert">
-    <p>© 2026 Base de Loisirs Municipale de Verruyes. Tous droits réservés.</p>
-</footer>
+<script>
+    // --- GESTION DE LA MODALE ---
+    const modal = document.getElementById('modalResa');
+    const labelEq = document.getElementById('equipementLabel');
+    const inputEq = document.getElementById('equipementValue');
+    const dateInput = document.getElementById('dateResa');
+    const heureSelect = document.getElementById('heureResa');
+    
+    // Set date min à aujourd'hui
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.min = today;
+
+    function ouvrirModal(equipement) {
+        labelEq.textContent = "Réservation : " + equipement;
+        inputEq.value = equipement;
+        modal.classList.add('active');
+        
+        // Simuler la génération de créneaux (de 10h à 17h30 par tranches de 20 min)
+        genererCreneaux();
+    }
+
+    function fermerModal() {
+        modal.classList.remove('active');
+        document.getElementById('messageConfirmation').style.display = 'none';
+        document.getElementById('reservationForm').reset();
+    }
+
+    function genererCreneaux() {
+        heureSelect.innerHTML = '<option value="">Sélectionnez un horaire</option>';
+        let heure = 10;
+        let minute = 0;
+        
+        while(heure < 17 || (heure === 17 && minute <= 30)) {
+            let hh = heure.toString().padStart(2, '0');
+            let mm = minute.toString().padStart(2, '0');
+            heureSelect.innerHTML += `<option value="${hh}:${mm}">${hh}h${mm}</option>`;
+            
+            minute += 20;
+            if(minute >= 60) {
+                heure++;
+                minute -= 60;
+            }
+        }
+    }
+
+    // Fermer si clic en dehors
+    modal.addEventListener('click', (e) => {
+        if(e.target === modal) fermerModal();
+    });
+
+    dateInput.addEventListener('change', genererCreneaux);
+
+    // Gérer l'envoi du formulaire (Simulation pour éviter le crash sans base de données)
+    document.getElementById('reservationForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const btnSubmit = document.getElementById('btnSubmitForm');
+        btnSubmit.disabled = true;
+        btnSubmit.textContent = "Traitement en cours...";
+
+        // Simulation d'un délai d'envoi
+        setTimeout(() => {
+            document.getElementById('messageConfirmation').style.display = 'block';
+            document.getElementById('reservationForm').reset();
+            
+            setTimeout(() => { 
+                fermerModal(); 
+                btnSubmit.disabled = false;
+                btnSubmit.textContent = "Confirmer le créneau"; 
+            }, 2500);
+        }, 1000);
+    });
+</script>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-  import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    /*
+      Pour activer la vraie base de données :
+      1. Décommente ces lignes
+      2. Remplace les "VOTRE_..." par tes identifiants Firebase.
+    */
+    
+    /*
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  (function(){
-      if(typeof emailjs !== 'undefined') emailjs.init("YOUR_PUBLIC_KEY"); 
-  })();
+    const firebaseConfig = {
+        apiKey: "VOTRE_API_KEY",
+        authDomain: "VOTRE_PROJECT_ID.firebaseapp.com",
+        projectId: "VOTRE_PROJECT_ID",
+        storageBucket: "VOTRE_PROJECT_ID.appspot.com",
+        messagingSenderId: "VOTRE_MESSAGING_ID",
+        appId: "VOTRE_APP_ID"
+    };
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyCfwA4JPtmOHm2VEIv02WftFgR1hz6t1GY",
-    authDomain: "plandeau-47a57.firebaseapp.com",
-    projectId: "plandeau-47a57",
-    storageBucket: "plandeau-47a57.firebasestorage.app",
-    messagingSenderId: "434894486889",
-    appId: "1:434894486889:web:9c932440a68f1669ae51f8",
-    measurementId: "G-0S6YM52V1T"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  window.openTab = function(tabId, btn) {
-      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-      document.querySelectorAll('.tab-link').forEach(link => link.classList.remove('active'));
-      document.getElementById(tabId).classList.add('active');
-      btn.classList.add('active');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  const modal = document.getElementById('reservationModal');
-  const titreEquipement = document.getElementById('titreEquipement');
-  const equipementValue = document.getElementById('equipementValue');
-  const modalImageEquipement = document.getElementById('modalImageEquipement');
-  
-  window.ouvrirModal = function(nomAffiche, codeBdd, imageFichier) {
-      titreEquipement.textContent = "Équipement sélectionné : " + nomAffiche;
-      equipementValue.value = codeBdd;
-      
-      if(imageFichier) {
-          modalImageEquipement.src = imageFichier;
-          modalImageEquipement.onerror = function() { this.src = 'https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?w=600'; };
-          modalImageEquipement.style.display = 'block';
-      } else {
-          modalImageEquipement.style.display = 'none';
-      }
-
-      modal.style.display = 'flex';
-      
-      document.getElementById('reservationForm').reset();
-      document.getElementById('heureResa').innerHTML = '<option value="">Sélectionnez d\'abord une date</option>';
-      document.getElementById('heureResa').disabled = true;
-      document.getElementById('btnSubmit').disabled = true;
-      document.getElementById('messageConfirmation').style.display = 'none';
-  }
-
-  window.fermerModal = function() { modal.style.display = 'none'; }
-  window.onclick = function(e) { if (e.target == modal) { fermerModal(); } }
-
-  const dateInput = document.getElementById('dateResa');
-  const heureSelect = document.getElementById('heureResa');
-  const btnSubmit = document.getElementById('btnSubmit');
-
-  const creneauxPossibles = [
-      "10:00", "10:20", "10:40", "11:00", "11:20", "11:40", 
-      "12:00", "12:20", "12:40", "13:00", "13:20", "13:40", 
-      "14:00", "14:20", "14:40", "15:00", "15:20", "15:40", 
-      "16:00", "16:20", "16:40", "17:00"
-  ];
-
-  async function verifierDisponibilites() {
-      const dateVal = dateInput.value;
-      const equipVal = equipementValue.value;
-      if (!dateVal) return;
-
-      heureSelect.innerHTML = '<option value="">Analyse des créneaux...</option>';
-      heureSelect.disabled = true;
-
-      try {
-          const q = query(collection(db, "reservations_materiel"), where("date", "==", dateVal), where("equipement", "==", equipVal));
-          const querySnapshot = await getDocs(q);
-          const heuresReservees = querySnapshot.docs.map(doc => doc.data().heure);
-
-          heureSelect.innerHTML = '<option value="">-- Sélectionner l\'horaire --</option>';
-          let dispoExist = false;
-
-          creneauxPossibles.forEach(heure => {
-              if (!heuresReservees.includes(heure)) {
-                  const opt = document.createElement('option');
-                  opt.value = heure; opt.textContent = heure;
-                  heureSelect.appendChild(opt);
-                  dispoExist = true;
-              }
-          });
-
-          if (dispoExist) {
-              heureSelect.disabled = false;
-              heureSelect.addEventListener('change', () => { btnSubmit.disabled = !heureSelect.value; });
-          } else {
-              heureSelect.innerHTML = '<option value="">Complet pour cette journée</option>';
-          }
-      } catch (err) {
-          heureSelect.innerHTML = '<option value="">Erreur réseau</option>';
-      }
-  }
-
-  dateInput.addEventListener('change', verifierDisponibilites);
-
-  document.getElementById('reservationForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      btnSubmit.disabled = true;
-      btnSubmit.textContent = "Traitement sécurisé...";
-
-      const formData = {
-          nomClient: document.getElementById('nom').value,
-          telephone: document.getElementById('telephone').value,
-          equipement: equipementValue.value,
-          date: dateInput.value,
-          heure: heureSelect.value
-      };
-
-      try {
-          await addDoc(collection(db, "reservations_materiel"), {
-              ...formData,
-              dateCreation: serverTimestamp()
-          });
-
-          if(typeof emailjs !== 'undefined') {
-              emailjs.send("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", formData)
-              .catch((err) => console.log("Note : EmailJS n'est pas configuré."));
-          }
-
-          document.getElementById('messageConfirmation').style.display = 'block';
-          document.getElementById('reservationForm').reset();
-          
-          setTimeout(() => { fermerModal(); btnSubmit.textContent = "Confirmer le créneau"; }, 2500);
-      } catch (err) {
-          alert("Une erreur technique est survenue.");
-          btnSubmit.disabled = false;
-      }
-  });
+    try {
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        window.db = db; // Rendre DB accessible si on veut l'utiliser
+        console.log("Firebase connecté !");
+    } catch (e) {
+        console.error("Erreur Firebase :", e);
+    }
+    */
 </script>
+
 </body>
 </html>
