@@ -476,7 +476,7 @@
   import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
   (function(){
-      if(typeof emailjs !== 'undefined') emailjs.init(LsqKciOS7PvZJY3lU); 
+      if(typeof emailjs !== 'undefined') emailjs.init("LsqKciOS7PvZJY3lU"); 
   })();
 
   const firebaseConfig = {
@@ -597,7 +597,7 @@
           });
 
           if(typeof emailjs !== 'undefined') {
-              emailjs.send(service_animeverruyes, template_animeverruyes, formData)
+              emailjs.send("service_animeverruyes", "template_animeverruyes", formData)
               .catch((err) => console.log("Note : EmailJS n'est pas configuré."));
           }
 
