@@ -22,8 +22,8 @@
         .header-banner h1 { color: var(--eau); margin: 10px 0; font-size: 2em; text-transform: uppercase; letter-spacing: 2px; }
 
         /* NAVIGATION TABS */
-        .nav-tabs { display: flex; justify-content: center; background-color: var(--eau); padding: 10px; gap: 10px; flex-wrap: wrap; }
-        .nav-tabs button { background: none; border: 2px solid transparent; color: var(--blanc); font-size: 1.1em; font-weight: bold; padding: 10px 20px; border-radius: 25px; cursor: pointer; transition: 0.3s; }
+        .nav-tabs { display: flex; justify-content: center; background-color: var(--eau); padding: 10px; gap: 10px; flex-wrap: wrap; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 6px rgba(0,0,0,0.1);}
+        .nav-tabs button { background: none; border: 2px solid transparent; color: var(--blanc); font-size: 1.1em; font-weight: bold; padding: 8px 16px; border-radius: 25px; cursor: pointer; transition: 0.3s; }
         .nav-tabs button:hover, .nav-tabs button.active { background-color: var(--blanc); color: var(--eau); }
 
         .container { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
@@ -37,11 +37,22 @@
 
         .poster-img { width: 100%; max-width: 600px; height: auto; display: block; margin: 0 auto 20px auto; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.15); }
 
+        /* === PAGE ACCUEIL === */
+        .home-intro { text-align: center; font-size: 1.2em; margin-bottom: 30px; }
+        .home-buttons { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-bottom: 40px; }
+        .home-buttons button { background-color: var(--sable); color: white; border: none; padding: 15px 25px; font-size: 1.1em; font-weight: bold; border-radius: 10px; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .home-buttons button:hover { background-color: #e78c43; transform: translateY(-3px); }
+        
+        /* GALERIE PHOTOS */
+        .gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 20px; }
+        .gallery img { width: 100%; height: 200px; object-fit: cover; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); transition: transform 0.3s; }
+        .gallery img:hover { transform: scale(1.03); }
+
         /* === CARTES LOCATIONS (CLIQUABLES) === */
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 20px; }
         .card { background: #fff; padding: 20px; border-radius: 10px; border: 2px solid var(--eau-claire); text-align: center; cursor: pointer; transition: transform 0.3s ease, box-shadow 0.3s ease; position: relative; overflow: hidden; }
         .card:hover { transform: translateY(-5px); border-color: var(--sable); box-shadow: 0 8px 20px rgba(244, 162, 97, 0.3); }
-        .card::after { content: "Réserver"; position: absolute; bottom: -40px; left: 0; width: 100%; background: var(--sable); color: white; padding: 10px 0; font-weight: bold; transition: bottom 0.3s; }
+        .card::after { content: "Réserver ce matériel"; position: absolute; bottom: -40px; left: 0; width: 100%; background: var(--sable); color: white; padding: 10px 0; font-weight: bold; transition: bottom 0.3s; }
         .card:hover::after { bottom: 0; }
         .card h3 { margin: 0 0 10px 0; color: var(--texte); }
         .price { font-size: 1.6em; font-weight: bold; color: var(--eau); margin: 10px 0; }
@@ -75,18 +86,43 @@
 </div>
 
 <nav class="nav-tabs">
-    <button class="tab-link active" onclick="openTab('locations', this)">Nos Locations</button>
+    <button class="tab-link active" onclick="openTab('accueil', this)">Accueil</button>
+    <button class="tab-link" onclick="openTab('locations', this)">Nos Locations</button>
     <button class="tab-link" onclick="openTab('planning', this)">Planning</button>
+    <button class="tab-link" onclick="openTab('tournois', this)">Tournois</button>
     <button class="tab-link" onclick="openTab('apropos', this)">À Propos</button>
 </nav>
 
 <div class="container">
+
+    <div id="accueil" class="tab-content active">
+        <div class="home-intro">
+            <h2>Bienvenue au Plan d'eau ! ☀️</h2>
+            <p>Découvrez notre base de loisirs, profitez de nos équipements nautiques et participez à nos animations tout au long de l'été.</p>
+        </div>
+        
+        <div class="home-buttons">
+            <button onclick="document.querySelectorAll('.tab-link')[1].click()">🛶 Réserver un équipement</button>
+            <button onclick="document.querySelectorAll('.tab-link')[2].click()">📅 Voir le planning</button>
+            <button onclick="document.querySelectorAll('.tab-link')[3].click()">🏆 Nos tournois</button>
+        </div>
+
+        <h3>📸 En images</h3>
+        <div class="gallery">
+            <img src="photo1.jpg" alt="Plan d'eau de Verruyes" onerror="this.style.display='none'">
+            <img src="photo2.jpg" alt="Activités nautiques" onerror="this.style.display='none'">
+            <img src="photo3.jpg" alt="Plage et détente" onerror="this.style.display='none'">
+            <img src="photo4.jpg" alt="Jeux et animations" onerror="this.style.display='none'">
+            <img src="photo5.jpg" alt="Ambiance estivale" onerror="this.style.display='none'">
+            <img src="photo6.jpg" alt="Paysage Verruyes" onerror="this.style.display='none'">
+        </div>
+    </div>
     
-    <div id="locations" class="tab-content active">
+    <div id="locations" class="tab-content">
         <h2>🛶 Nos Locations & Réservations</h2>
         <img src="location.jpg" alt="Tarifs des locations" class="poster-img" onerror="this.style.display='none'">
         
-        <p style="text-align: center; font-style: italic; color: #666; margin-bottom: 30px;">Cliquez sur un équipement pour réserver votre créneau de 20 minutes.</p>
+        <p style="text-align: center; font-weight: bold; color: var(--eau); margin-bottom: 30px;">👇 Cliquez sur un équipement ci-dessous pour réserver votre créneau 👇</p>
         
         <div class="grid">
             <div class="card" onclick="ouvrirModal('Pédalo 2 places', 'pedalo_2')">
@@ -124,18 +160,33 @@
 
     <div id="planning" class="tab-content">
         <h2>📅 Planning des Animations</h2>
+        <p style="text-align: center;">Retrouvez le programme de la semaine !</p>
         <img src="semaine28.jpg" alt="Planning des animations" class="poster-img" onerror="this.style.display='none'">
+    </div>
+
+    <div id="tournois" class="tab-content">
+        <h2>🏆 Nos Tournois de l'été</h2>
+        <p>Prêts à relever le défi ? Tout au long de l'été, nous organisons des tournois conviviaux (Beach Volley, Mölkky, Pétanque...).</p>
+        <div style="background: var(--eau-claire); padding: 20px; border-radius: 10px; border-left: 5px solid var(--eau); margin-top: 20px;">
+            <h3>Prochains événements</h3>
+            <p><i>Les inscriptions se font directement sur place auprès de l'équipe d'animation ou via notre Instagram !</i></p>
+            <ul>
+                <li><strong>Mercredi 08/07 :</strong> Tournoi de Mölkky</li>
+                <li><strong>Samedi 11/07 :</strong> Tournoi de Beach Volley</li>
+            </ul>
+        </div>
     </div>
 
     <div id="apropos" class="tab-content">
         <h2>👋 À Propos de l'équipe</h2>
-        <p>Bienvenue au plan d'eau de Verruyes ! Notre équipe d'animation est là pour vous faire passer un été inoubliable.</p>
-        <ul>
-            <li><strong>L'équipe :</strong> Célian, Lilou, Justin et Lola.</li>
-            <li><strong>Horaires :</strong> Ouvert tous les jours (du lundi au dimanche) de 10h00 à 17h30.</li>
-            <li><strong>Instagram :</strong> <a href="https://instagram.com/ANIMVERRUYES" target="_blank">@ANIMVERRUYES</a></li>
-            <li><strong>Contact pro :</strong> <em>Adresse email à venir...</em></li>
-        </ul>
+        <p>Bienvenue au plan d'eau de Verruyes ! Notre équipe d'animation est là pour vous faire passer un été inoubliable en toute sécurité.</p>
+        <div style="line-height: 1.8; margin-top: 20px;">
+            <p>🧑‍🤝‍🧑 <strong>L'équipe d'animation :</strong> Célian, Lilou, Justin et Lola.</p>
+            <p>🕒 <strong>Horaires d'ouverture :</strong> Ouvert du lundi au dimanche, de 10h00 à 17h30.</p>
+            <p>📍 <strong>Lieu :</strong> Plan d'eau de Verruyes, 79310 VERRUYES.</p>
+            <p>📱 <strong>Instagram :</strong> <a href="https://instagram.com/ANIMVERRUYES" target="_blank" style="color: var(--eau); font-weight: bold;">@ANIMVERRUYES</a></p>
+            <p>✉️ <strong>Contactez-nous :</strong> <a href="mailto:animeverruyes@gmail.com" style="color: var(--eau); font-weight: bold;">animeverruyes@gmail.com</a></p>
+        </div>
     </div>
 
 </div>
@@ -174,14 +225,13 @@
 </div>
 
 <div class="footer">
-    <p>Plan d'eau de VERRUYES - 79310</p>
+    <p>© 2026 Plan d'eau de VERRUYES - 79310</p>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
   import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-  // TA CONFIGURATION FIREBASE EXACTE
   const firebaseConfig = {
     apiKey: "AIzaSyCfwA4JPtmOHm2VEIv02WftFgR1hz6t1GY",
     authDomain: "plandeau-47a57.firebaseapp.com",
@@ -201,6 +251,8 @@
       document.querySelectorAll('.tab-link').forEach(link => link.classList.remove('active'));
       document.getElementById(tabId).classList.add('active');
       btn.classList.add('active');
+      // Remonter en haut de la page lors du changement d'onglet (pratique sur mobile)
+      window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   // --- LOGIQUE DU MODAL ---
@@ -213,7 +265,6 @@
       equipementValue.value = codeBdd;
       modal.style.display = 'flex';
       
-      // Réinitialiser le formulaire en l'ouvrant
       document.getElementById('reservationForm').reset();
       document.getElementById('heureResa').innerHTML = '<option value="">Sélectionnez d\'abord une date</option>';
       document.getElementById('heureResa').disabled = true;
@@ -221,14 +272,8 @@
       document.getElementById('messageConfirmation').style.display = 'none';
   }
 
-  window.fermerModal = function() {
-      modal.style.display = 'none';
-  }
-
-  // Fermer le modal si on clique en dehors de la boîte
-  window.onclick = function(event) {
-      if (event.target == modal) { fermerModal(); }
-  }
+  window.fermerModal = function() { modal.style.display = 'none'; }
+  window.onclick = function(event) { if (event.target == modal) { fermerModal(); } }
 
   // --- LOGIQUE DE DISPONIBILITÉ ---
   const dateInput = document.getElementById('dateResa');
@@ -244,7 +289,7 @@
 
   async function verifierDisponibilites() {
       const dateVal = dateInput.value;
-      const equipVal = equipementValue.value; // Récupère l'équipement caché
+      const equipVal = equipementValue.value;
 
       if (!dateVal) return;
 
@@ -276,7 +321,6 @@
 
           if (aDesDispos) {
               heureSelect.disabled = false;
-              // Le bouton submit sera activé par le formulaire quand tout sera rempli
               heureSelect.addEventListener('change', () => {
                   btnSubmit.disabled = !heureSelect.value;
               });
