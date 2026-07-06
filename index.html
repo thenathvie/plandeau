@@ -473,6 +473,37 @@
     </div>
 </div>
 
+<div class="modal-overlay" id="inscriptionTournoiModal">
+    <div class="modal-window">
+        <span class="close-modal" onclick="fermerInscriptionTournoiModal()">&times;</span>
+        
+        <h2 style="font-family:'Playfair Display', serif; color:var(--brand-primary);">Inscription au Tournoi</h2>
+        <p style="color:var(--brand-secondary); font-size:1em; font-weight:800; margin-top:4px;" id="titreTournoiInscription"></p>
+        
+        <form id="inscriptionTournoiForm">
+            <input type="hidden" id="tournoiIdValue">
+            
+            <div class="form-row">
+                <label for="nomEquipe">Nom de l'équipe</label>
+                <input type="text" id="nomEquipe" placeholder="Ex: Les Requins" required>
+            </div>
+            <div class="form-row">
+                <label for="nomParticipant">Nom & Prénom d'un participant (référent)</label>
+                <input type="text" id="nomParticipant" placeholder="Ex: Jean Dupont" required>
+            </div>
+            <div class="form-row">
+                <label for="telephoneTournoi">Numéro de téléphone</label>
+                <input type="tel" id="telephoneTournoi" placeholder="Ex: 06 00 00 00 00" required>
+            </div>
+            
+            <button type="submit" class="btn-premium" id="btnSubmitInscription" style="width:100%; border-radius:var(--radius-md); margin-top:10px;">Confirmer l'inscription</button>
+        </form>
+        <div id="messageConfirmationInscription" style="text-align:center; background:#eef2f5; color:var(--brand-secondary); padding:15px; border-radius:var(--radius-md); display:none; margin-top:20px; font-weight:700;">
+            ✓ Inscription confirmée. À très vite !
+        </div>
+    </div>
+</div>
+
 <div class="modal-overlay" id="loginModal">
     <div class="modal-window">
         <span class="close-modal" onclick="fermerLoginModal()">&times;</span>
@@ -500,7 +531,6 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
   import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-  // Ajout des imports nécessaires pour l'authentification Firebase
   import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
   (function(){
@@ -519,7 +549,7 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
-  const auth = getAuth(app); // Initialisation du module Auth
+  const auth = getAuth(app); 
 
   window.openTab = function(tabId, btn) {
       document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
@@ -529,7 +559,7 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  /* --- GESTION DU MODAL RÉSERVATION --- */
+  /* --- GESTION DU MODAL RÉSERVATION MATÉRIEL --- */
   const modal = document.getElementById('reservationModal');
   const titreEquipement = document.getElementById('titreEquipement');
   const equipementValue = document.getElementById('equipementValue');
@@ -557,11 +587,31 @@
 
   window.fermerModal = function() { modal.style.display = 'none'; }
 
+  /* --- GESTION DU MODAL INSCRIPTION TOURNOI --- */
+  const inscriptionModal = document.getElementById('inscriptionTournoiModal');
+  const titreTournoiInscription = document.getElementById('titreTournoiInscription');
+  const tournoiIdValue = document.getElementById('tournoiIdValue');
+
+  // Fonction appelée par le bouton "S'inscrire" sur la carte d'un tournoi
+  window.ouvrirModalInscriptionTournoi = function(tournoiId, titre) {
+      titreTournoiInscription.textContent = titre;
+      tournoiIdValue.value = tournoiId;
+      
+      inscriptionModal.style.display = 'flex';
+      
+      document.getElementById('inscriptionTournoiForm').reset();
+      document.getElementById('messageConfirmationInscription').style.display = 'none';
+      document.getElementById('btnSubmitInscription').disabled = false;
+  }
+
+  window.fermerInscriptionTournoiModal = function() { 
+      inscriptionModal.style.display = 'none'; 
+  }
+
   /* --- GESTION DU MODAL CONNEXION ADMIN --- */
   const loginModal = document.getElementById('loginModal');
   
   window.ouvrirLoginAdmin = function() {
-      // Si l'admin est déjà connecté, le clic sur le logo ne réouvre pas le formulaire inutilement
       if(auth.currentUser) {
           alert("Vous êtes déjà connecté en tant qu'administrateur !");
           return;
@@ -572,10 +622,11 @@
   
   window.fermerLoginModal = function() { loginModal.style.display = 'none'; }
 
-  // Modification du clic global pour gérer la fermeture des deux overlays distincts
+  // Fermeture des modals si on clique en dehors
   window.onclick = function(e) { 
       if (e.target == modal) { fermerModal(); } 
       if (e.target == loginModal) { fermerLoginModal(); }
+      if (e.target == inscriptionModal) { fermerInscriptionTournoiModal(); }
   }
 
   /* --- SÉCURITÉ & CONNEXION ADMIN --- */
@@ -604,6 +655,38 @@
           await signOut(auth);
       }
   }
+
+  /* --- SOUMISSION INSCRIPTION TOURNOI --- */
+  document.getElementById('inscriptionTournoiForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btnSubmitInscr = document.getElementById('btnSubmitInscription');
+      btnSubmitInscr.disabled = true;
+      btnSubmitInscr.textContent = "Inscription en cours...";
+
+      try {
+          // Ajout des données du formulaire dans une nouvelle collection "inscriptions_tournois"
+          await addDoc(collection(db, "inscriptions_tournois"), {
+              tournoiId: document.getElementById('tournoiIdValue').value,
+              tournoiTitre: document.getElementById('titreTournoiInscription').textContent,
+              nomEquipe: document.getElementById('nomEquipe').value,
+              nomParticipant: document.getElementById('nomParticipant').value,
+              telephone: document.getElementById('telephoneTournoi').value,
+              dateInscription: serverTimestamp()
+          });
+
+          document.getElementById('messageConfirmationInscription').style.display = 'block';
+          document.getElementById('inscriptionTournoiForm').reset();
+          
+          setTimeout(() => { 
+              fermerInscriptionTournoiModal(); 
+              btnSubmitInscr.textContent = "Confirmer l'inscription"; 
+          }, 2500);
+      } catch (err) {
+          alert("Une erreur technique est survenue. Vérifiez vos règles Firebase.");
+          btnSubmitInscr.disabled = false;
+          btnSubmitInscr.textContent = "Confirmer l'inscription";
+      }
+  });
 
   /* --- SYNC ACCÈS ET RECHARGEMENT DES TOURNOIS --- */
   onAuthStateChanged(auth, (user) => {
@@ -683,14 +766,19 @@
               let htmlContent = `<div class="cards-grid">`;
               querySnapshot.forEach((doc) => {
                   const data = doc.data();
+                  const tournoiId = doc.id; 
+                  // On échappe les apostrophes éventuelles dans le titre pour que le clic fonctionne sans bug
+                  const safeTitre = data.titre.replace(/'/g, "\\'");
+                  
                   htmlContent += `
                       <div class="card-equipment" style="cursor: default;">
                           <div class="card-content">
                               <h3>${data.titre}</h3>
                               <p class="price-tag" style="font-size:1.1em; color:var(--brand-secondary); margin: 5px 0 10px 0;">📅 ${data.date}</p>
-                              <div class="badge-info" style="background:transparent; padding:0; border:none; font-weight:500; color:var(--text-main); line-height:1.4;">
+                              <div class="badge-info" style="background:transparent; padding:0; border:none; font-weight:500; color:var(--text-main); line-height:1.4; margin-bottom: 15px;">
                                   ${data.description}
                               </div>
+                              <button class="btn-premium" style="width:100%; padding: 10px; font-size: 0.9em; margin-top: auto;" onclick="ouvrirModalInscriptionTournoi('${tournoiId}', '${safeTitre}')">S'inscrire</button>
                           </div>
                       </div>
                   `;
