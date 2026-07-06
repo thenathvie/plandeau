@@ -67,6 +67,7 @@
             width: auto; 
             object-fit: contain; 
             filter: drop-shadow(0px 4px 6px rgba(0, 51, 102, 0.15)); 
+            cursor: pointer; /* Curseur main pour indiquer que c'est cliquable */
         }
         .brand-identity h1 { 
             font-family: 'Playfair Display', serif; 
@@ -269,7 +270,7 @@
 <header class="header-nav-wrapper">
     <div class="header-container">
         <div class="brand-identity">
-            <img src="logo.png" alt="Logo Base" class="logo">
+            <img src="logo.png" alt="Logo Base" class="logo" onclick="ouvrirLoginAdmin()">
             <h1>Plan d'eau de Verruyes</h1>
         </div>
         <nav class="nav-tabs">
@@ -382,10 +383,15 @@
             <h2>Compétitions & Challenges</h2>
             <p>Mesurez-vous aux autres estivants lors de nos tournois exclusifs.</p>
         </div>
-        <div class="lock-box">
-            <span class="lock-badge">Statut : À venir</span>
-            <h3 style="color:var(--brand-primary); margin-bottom:10px;">Inscriptions bientôt ouvertes</h3>
-            <p style="color:var(--text-muted);">La plateforme d'inscription en ligne pour les compétitions sera accessible très prochainement.</p>
+        
+        <div id="tournois-zone-admin"></div>
+
+        <div id="tournois-liste">
+            <div class="lock-box">
+                <span class="lock-badge">Statut : À venir</span>
+                <h3 style="color:var(--brand-primary); margin-bottom:10px;">Inscriptions bientôt ouvertes</h3>
+                <p style="color:var(--text-muted);">La plateforme d'inscription en ligne pour les compétitions sera accessible très prochainement.</p>
+            </div>
         </div>
     </section>
 
@@ -467,6 +473,26 @@
     </div>
 </div>
 
+<div class="modal-overlay" id="loginModal">
+    <div class="modal-window">
+        <span class="close-modal" onclick="fermerLoginModal()">&times;</span>
+        <h2 style="font-family:'Playfair Display', serif; color:var(--brand-primary); margin-bottom:10px;">Espace Connexion Admin</h2>
+        <p style="color:var(--text-muted); font-size:0.9em; margin-bottom:15px;">Réservé à l'équipe d'animation pour la gestion des compétitions.</p>
+        
+        <form id="loginForm">
+            <div class="form-row">
+                <label for="loginEmail">Adresse email admin</label>
+                <input type="email" id="loginEmail" placeholder="Ex: animeverruyes@gmail.com" required>
+            </div>
+            <div class="form-row">
+                <label for="loginPassword">Mot de passe</label>
+                <input type="password" id="loginPassword" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn-premium" id="btnLoginSubmit" style="width:100%; border-radius:var(--radius-md); margin-top:10px;">Se connecter</button>
+        </form>
+    </div>
+</div>
+
 <footer class="footer-expert">
     <p>© 2026 Base de Loisirs Municipale de Verruyes. Tous droits réservés.</p>
 </footer>
@@ -474,6 +500,8 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
   import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+  // Ajout des imports nécessaires pour l'authentification Firebase
+  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
   (function(){
       if(typeof emailjs !== 'undefined') emailjs.init("LsqKciOS7PvZJY3lU"); 
@@ -491,6 +519,7 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
+  const auth = getAuth(app); // Initialisation du module Auth
 
   window.openTab = function(tabId, btn) {
       document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
@@ -500,6 +529,7 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  /* --- GESTION DU MODAL RÉSERVATION --- */
   const modal = document.getElementById('reservationModal');
   const titreEquipement = document.getElementById('titreEquipement');
   const equipementValue = document.getElementById('equipementValue');
@@ -526,8 +556,154 @@
   }
 
   window.fermerModal = function() { modal.style.display = 'none'; }
-  window.onclick = function(e) { if (e.target == modal) { fermerModal(); } }
 
+  /* --- GESTION DU MODAL CONNEXION ADMIN --- */
+  const loginModal = document.getElementById('loginModal');
+  
+  window.ouvrirLoginAdmin = function() {
+      // Si l'admin est déjà connecté, le clic sur le logo ne réouvre pas le formulaire inutilement
+      if(auth.currentUser) {
+          alert("Vous êtes déjà connecté en tant qu'administrateur !");
+          return;
+      }
+      loginModal.style.display = 'flex';
+      document.getElementById('loginForm').reset();
+  }
+  
+  window.fermerLoginModal = function() { loginModal.style.display = 'none'; }
+
+  // Modification du clic global pour gérer la fermeture des deux overlays distincts
+  window.onclick = function(e) { 
+      if (e.target == modal) { fermerModal(); } 
+      if (e.target == loginModal) { fermerLoginModal(); }
+  }
+
+  /* --- SÉCURITÉ & CONNEXION ADMIN --- */
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      const btnSubmitLogin = document.getElementById('btnLoginSubmit');
+      
+      btnSubmitLogin.disabled = true;
+      btnSubmitLogin.textContent = "Vérification...";
+
+      try {
+          await signInWithEmailAndPassword(auth, email, password);
+          fermerLoginModal();
+      } catch (err) {
+          alert("Identifiants incorrects ou droits insuffisants.");
+      } finally {
+          btnSubmitLogin.disabled = false;
+          btnSubmitLogin.textContent = "Se connecter";
+      }
+  });
+
+  window.deconnexionAdmin = async function() {
+      if(confirm("Voulez-vous vous déconnecter de l'espace admin ?")) {
+          await signOut(auth);
+      }
+  }
+
+  /* --- SYNC ACCÈS ET RECHARGEMENT DES TOURNOIS --- */
+  onAuthStateChanged(auth, (user) => {
+      chargerSectionTournois(user);
+  });
+
+  async function chargerSectionTournois(user) {
+      const zoneAdmin = document.getElementById('tournois-zone-admin');
+      const listeTournois = document.getElementById('tournois-liste');
+
+      // 1. GESTION DE LA VUE ÉCRITURE (ADMIN)
+      if(user) {
+          zoneAdmin.innerHTML = `
+              <div style="background: white; padding: 30px; border-radius: var(--radius-lg); box-shadow: var(--shadow-subtle); max-width: 600px; margin: 0 auto 40px auto; border: 1px solid rgba(0,51,102,0.05);">
+                  <h3 style="color: var(--brand-primary); margin-bottom: 5px;">Espace Administrateur</h3>
+                  <p style="color: var(--text-muted); font-size:0.9em; margin-bottom:20px;">Ajouter un nouveau tournoi sur le site.</p>
+                  
+                  <form id="addTournoiForm">
+                      <div class="form-row">
+                          <label for="tTitre">Nom de la compétition</label>
+                          <input type="text" id="tTitre" placeholder="Ex: Tournoi Nocturne Volley" required>
+                      </div>
+                      <div class="form-row">
+                          <label for="tDate">Date & Horaires</label>
+                          <input type="text" id="tDate" placeholder="Ex: Samedi 25 juillet dès 15h" required>
+                      </div>
+                      <div class="form-row">
+                          <label for="tDesc">Description & Récompenses</label>
+                          <input type="text" id="tDesc" placeholder="Ex: Inscription gratuite par équipe de 4, lots locaux à gagner." required>
+                      </div>
+                      <button type="submit" class="btn-premium" id="btnPublishTournoi" style="width:100%; border-radius:var(--radius-md); margin-top:10px;">✓ Publier le tournoi</button>
+                  </form>
+                  <button onclick="deconnexionAdmin()" class="btn-premium secondary" style="width:100%; border-radius:var(--radius-md); margin-top:15px; padding: 12px; font-size:0.9em;">Se déconnecter</button>
+              </div>
+          `;
+
+          // Formulaire de création de tournoi
+          document.getElementById('addTournoiForm').addEventListener('submit', async (e) => {
+              e.preventDefault();
+              const btnPub = document.getElementById('btnPublishTournoi');
+              btnPub.disabled = true;
+              btnPub.textContent = "Publication sur Firebase...";
+
+              try {
+                  await addDoc(collection(db, "tournois"), {
+                      titre: document.getElementById('tTitre').value,
+                      date: document.getElementById('tDate').value,
+                      description: document.getElementById('tDesc').value,
+                      dateCreation: serverTimestamp()
+                  });
+                  alert("Le tournoi a été ajouté avec succès !");
+                  chargerSectionTournois(user); // Recharger l'affichage
+              } catch (err) {
+                  alert("Erreur serveur : " + err.message);
+              } finally {
+                  btnPub.disabled = false;
+                  btnPub.textContent = "✓ Publier le tournoi";
+              }
+          });
+      } else {
+          zoneAdmin.innerHTML = ""; // Rien pour les utilisateurs anonymes
+      }
+
+      // 2. GESTION DE LA VUE LECTURE (PUBLIC ET ADMIN)
+      try {
+          const querySnapshot = await getDocs(collection(db, "tournois"));
+          
+          if(querySnapshot.empty) {
+              listeTournois.innerHTML = `
+                  <div class="lock-box">
+                      <span class="lock-badge">Statut : À venir</span>
+                      <h3 style="color:var(--brand-primary); margin-bottom:10px;">Inscriptions bientôt ouvertes</h3>
+                      <p style="color:var(--text-muted);">La plateforme d'inscription en ligne pour les compétitions sera accessible très prochainement.</p>
+                  </div>
+              `;
+          } else {
+              let htmlContent = `<div class="cards-grid">`;
+              querySnapshot.forEach((doc) => {
+                  const data = doc.data();
+                  htmlContent += `
+                      <div class="card-equipment" style="cursor: default;">
+                          <div class="card-content">
+                              <h3>${data.titre}</h3>
+                              <p class="price-tag" style="font-size:1.1em; color:var(--brand-secondary); margin: 5px 0 10px 0;">📅 ${data.date}</p>
+                              <div class="badge-info" style="background:transparent; padding:0; border:none; font-weight:500; color:var(--text-main); line-height:1.4;">
+                                  ${data.description}
+                              </div>
+                          </div>
+                      </div>
+                  `;
+              });
+              htmlContent += `</div>`;
+              listeTournois.innerHTML = htmlContent;
+          }
+      } catch (err) {
+          listeTournois.innerHTML = `<p style="text-align:center; color:var(--brand-secondary); font-weight:700;">Erreur lors du chargement des tournois.</p>`;
+      }
+  }
+
+  /* --- ANALYSE DES DISPONIBILITÉS LOCATIONS --- */
   const dateInput = document.getElementById('dateResa');
   const heureSelect = document.getElementById('heureResa');
   const btnSubmit = document.getElementById('btnSubmit');
